@@ -60,6 +60,8 @@ private:
     QProgressDialog     *progress_dialog;
     QByteArray          _end_of_line;
 
+    void fillSettingsLists();
+
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -142,6 +144,19 @@ private:
      * \param index index of selected item
      */
     void handleEOLCharChanged(int index);
+
+    void refreshSettings(QString profile);
+
+signals:
+    void openSession(QString profile);
+    void closeSession();
+private slots:
+    void onCloseDialog();
+    void on_connectButton_released();
+    void on_profileComboBox_currentTextChanged(const QString &arg1);
+    void on_profileComboBox_activated(int index);
+    void on_deviceComboBox_highlighted(const QString &arg1);
+    void on_profileComboBox_highlighted(const QString &arg1);
 };
 
 #endif // MAINWINDOW_H

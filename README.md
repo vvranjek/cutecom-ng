@@ -68,7 +68,7 @@ If you want the latest cutecom-ng improvements, not yet available in a pre-built
 ```git clone https://github.com/develersrl/cutecom-ng```
 
 3. open ./cutecom-ng/cutecom-ng.pro with QtCreator
-4. build
+4. build with Qt version 5.5.1
 
 ## Usage / Tips
 

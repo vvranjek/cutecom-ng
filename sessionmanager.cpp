@@ -18,6 +18,8 @@
 #include <QProgressDialog>
 #include <QMessageBox>
 #include <QFile>
+#include <QDebug>
+#include "settings.h"
 
 SessionManager::SessionManager(QObject *parent) :
     QObject(parent)
@@ -81,9 +83,11 @@ void SessionManager::handleError(QSerialPort::SerialPortError serialPortError)
     }
 }
 
-void SessionManager::openSession(const QHash<QString, QString>& port_cfg)
+void SessionManager::openSession(const QString profile)
 {
     bool cfg_ok = true, ok;
+
+	QHash<QString, QString> port_cfg = settings::loadSettings(profile);
 
     // try converting port config from the hash
     QSerialPort::BaudRate baud_rate = static_cast<QSerialPort::BaudRate>

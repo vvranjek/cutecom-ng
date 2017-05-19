@@ -20,6 +20,9 @@
 #include <QProgressDialog>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSettings>
+#include <QSerialPortInfo>
+#include <QDebug>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -27,6 +30,7 @@
 #include "sessionmanager.h"
 #include "outputmanager.h"
 #include "searchhighlighter.h"
+#include "settings.h"
 
 /// maximum count of document blocks for the bootom output
 const int MAX_OUTPUT_LINES = 100;
@@ -46,7 +50,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect_dlg = new ConnectDialog(this);
 
     // show connection dialog
-    connect(ui->connectButton, &QAbstractButton::clicked, connect_dlg, &ConnectDialog::show);
+    connect(ui->settingsButton, &QAbstractButton::clicked, connect_dlg, &ConnectDialog::show);
+    connect(connect_dlg, SIGNAL(closedSignal()), this, SLOT(onCloseDialog()));
 
     // handle reception of new data from serial port
     connect(session_mgr, &SessionManager::dataReceived, this, &MainWindow::handleDataReceived);
@@ -66,8 +71,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->clearButton, &QPushButton::clicked, ui->bottomOutput, &QPlainTextEdit::clear);
 
     // connect open/close session slots
+    connect(this, &MainWindow::openSession, session_mgr, &SessionManager::openSession);
     connect(connect_dlg, &ConnectDialog::openDeviceClicked, session_mgr, &SessionManager::openSession);
-    connect(ui->disconnectButton, &QPushButton::clicked, session_mgr, &SessionManager::closeSession);
+    connect(this, &MainWindow::closeSession, session_mgr, &SessionManager::closeSession);
 
     connect(ui->splitOutputBtn, &QPushButton::clicked, this, &MainWindow::toggleOutputSplitter);
 
@@ -93,13 +99,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // connect search-related signals/slots
     connect(search_prev_button, &QPushButton::clicked,
-	search_highlighter_main, &SearchHighlighter::previousOccurence);
+            search_highlighter_main, &SearchHighlighter::previousOccurence);
     connect(search_next_button, &QPushButton::clicked,
-	search_highlighter_main, &SearchHighlighter::nextOccurence);
+            search_highlighter_main, &SearchHighlighter::nextOccurence);
     connect(search_highlighter_main, &SearchHighlighter::cursorPosChanged,
-	this, &MainWindow::handleCursosPosChanged);
+            this, &MainWindow::handleCursosPosChanged);
     connect(search_highlighter_main, &SearchHighlighter::totalOccurencesChanged,
-	this, &MainWindow::handleTotalOccurencesChanged);
+            this, &MainWindow::handleTotalOccurencesChanged);
     connect(ui->searchButton, &QPushButton::toggled, this, &MainWindow::showSearchWidget);
 
     // additional configuration for bottom output
@@ -131,11 +137,124 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->bottomOutput->viewport()->installEventFilter(this);
     search_input->installEventFilter(this);
     installEventFilter(this);
+
+    fillSettingsLists();
+
+    ui->profileComboBox->addItems(settings::getProfileList());
+
+    refreshSettings(settings::getCurrentProfile());
+
+    // fill devices combo box
+    QList<QSerialPortInfo> ports(QSerialPortInfo::availablePorts());
+    for (int idx = 0; idx < ports.length(); ++idx)
+    {
+        const QSerialPortInfo& port_info = ports.at(idx);
+        ui->deviceComboBox->addItem(port_info.systemLocation());
+    }
+
+    // Set values of current profile
+    QString _currentProfile;
+    _currentProfile = settings::getCurrentProfile();
+    ui->baudRateBox->setCurrentText(QString::number(settings::getBaudRateOfProfile(_currentProfile)));
+    ui->profileComboBox->setCurrentText(_currentProfile);
+}
+
+void MainWindow::fillSettingsLists()
+{
+    // fill devices combo box
+    QList<QSerialPortInfo> ports(QSerialPortInfo::availablePorts());
+    for (int idx = 0; idx < ports.length(); ++idx)
+    {
+        const QSerialPortInfo& port_info = ports.at(idx);
+        ui->deviceComboBox->addItem(port_info.systemLocation());
+
+        // construct description tooltip
+        QString tooltip;
+
+        // add description if not empty
+        if (!port_info.description().isEmpty())
+            tooltip.append(port_info.description());
+        if (!port_info.manufacturer().isEmpty())
+        {
+            // add ' / manufacturer' if not empty
+            if (!tooltip.isEmpty())
+                tooltip.push_back(QStringLiteral(" / "));
+            tooltip.append(port_info.manufacturer());
+        }
+        // assign portName
+        if (tooltip.isEmpty())
+            tooltip = port_info.portName();
+
+        ui->deviceComboBox->setItemData(idx, tooltip, Qt::ToolTipRole);
+    }
+
+    // Fill baudrate box
+    QStringList baud_rates;
+    baud_rates <<
+                  QString::number(QSerialPort::Baud1200) << QString::number(QSerialPort::Baud2400);
+    baud_rates <<
+                  QString::number(QSerialPort::Baud4800) << QString::number(QSerialPort::Baud9600);
+    baud_rates <<
+                  QString::number(QSerialPort::Baud19200) << QString::number(QSerialPort::Baud38400);
+    baud_rates <<
+                  QString::number(QSerialPort::Baud57600) << QString::number(QSerialPort::Baud115200);
+    ui->baudRateBox->addItems(baud_rates);
+
+    // fill data bits combo box
+    QStringList data_bits;
+    data_bits <<
+                 QString::number(QSerialPort::Data5) << QString::number(QSerialPort::Data6);
+    data_bits <<
+                 QString::number(QSerialPort::Data7) << QString::number(QSerialPort::Data8);
+    ui->dataBitsComboBox->addItems(data_bits);
+    ui->dataBitsComboBox->setCurrentText(QString::number(QSerialPort::Data8));
+
+    // fill stop bits combo box
+    ui->StopBitsComboBox->addItem(QStringLiteral("1"), QSerialPort::OneStop);
+#ifdef Q_WS_WIN
+    ui->StopBitsComboBox->addItem(QStringLiteral("1.5"), QSerialPort::OneAndHalfStop);
+#endif
+    ui->StopBitsComboBox->addItem(QStringLiteral("2"), QSerialPort::TwoStop);
+    ui->StopBitsComboBox->setCurrentText("1");
+
+    // fill parity combo box
+    ui->parityComboBox->addItem(QStringLiteral("None"), QSerialPort::NoParity);
+    ui->parityComboBox->addItem(QStringLiteral("Even"), QSerialPort::EvenParity);
+    ui->parityComboBox->addItem(QStringLiteral("Odd"), QSerialPort::OddParity);
+    ui->parityComboBox->addItem(QStringLiteral("Space"), QSerialPort::SpaceParity);
+    ui->parityComboBox->addItem(QStringLiteral("Mark"), QSerialPort::MarkParity);
+    ui->parityComboBox->setCurrentText("None");
+
+    // fill flow control
+    ui->flowComboBox->addItem(QStringLiteral("No flow"), QSerialPort::NoFlowControl);
+    ui->flowComboBox->addItem(QStringLiteral("Hardware"), QSerialPort::HardwareControl);
+    ui->flowComboBox->addItem(QStringLiteral("Software"), QSerialPort::SoftwareControl);
+    ui->flowComboBox->setCurrentText("No flow");
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::onCloseDialog()
+{
+    qDebug() << "Dialog closed";
+    ui->profileComboBox->clear();
+    ui->profileComboBox->addItems(settings::getProfileList());
+    refreshSettings(settings::getCurrentProfile());
+}
+
+void MainWindow::refreshSettings(QString profile)
+{
+        QHash<QString, QString> cfg;
+        cfg = settings::loadSettings(profile);
+        ui->deviceComboBox->setCurrentText(cfg[QStringLiteral("device")]);
+        ui->baudRateBox->setCurrentText(cfg[QStringLiteral("baud_rate")]);
+        ui->parityComboBox->setCurrentText(cfg[QStringLiteral("parity")]);
+        ui->flowComboBox->setCurrentText(cfg[QStringLiteral("flow_control")]);
+        ui->dataBitsComboBox->setCurrentText(cfg[QStringLiteral("data_bits")]);
+        ui->StopBitsComboBox->setCurrentText(cfg[QStringLiteral("stop_bits")]);
 }
 
 void MainWindow::handleSessionOpened()
@@ -147,8 +266,8 @@ void MainWindow::handleSessionOpened()
     ui->mainOutput->clear();
     ui->bottomOutput->clear();
 
-    ui->connectButton->setDisabled(true);
-    ui->disconnectButton->setEnabled(true);
+    ui->connectButton->setChecked(true);
+    ui->connectButton->setText("Disconnect");
 
     // enable file transfer and input line
     ui->fileTransferButton->setEnabled(true);
@@ -157,8 +276,8 @@ void MainWindow::handleSessionOpened()
 
 void MainWindow::handleSessionClosed()
 {
-    ui->connectButton->setEnabled(true);
-    ui->disconnectButton->setDisabled(true);
+    ui->connectButton->setChecked(false);
+    ui->connectButton->setText("Connect");
 
     // disable file transfer and input line
     ui->fileTransferButton->setDisabled(true);
@@ -191,13 +310,12 @@ void MainWindow::handleFileTransfer()
 
     int protocol = ui->protocolCombo->currentData().toInt();
     session_mgr->transferFile(filename,
-        static_cast<SessionManager::Protocol>(protocol));
+                              static_cast<SessionManager::Protocol>(protocol));
 
     // disable UI elements acting on QSerialPort instance, as long as
     // objectds involved in FileTransferred are not destroyed or back
     // to their pre-file-transfer state
     ui->fileTransferButton->setEnabled(false);
-    ui->disconnectButton->setEnabled(false);
     ui->inputBox->setEnabled(false);
 
     // progress dialog event loop
@@ -220,19 +338,18 @@ void MainWindow::handleFileTransferEnded(FileTransfer::TransferError error)
 {
     switch (error)
     {
-        case FileTransfer::LocalCancelledError:
-            break;
-        case FileTransfer::NoError:
-            QMessageBox::information(this, tr("Cutecom-ng"), QStringLiteral("File transferred successfully"));
-            break;
-        default:
-            progress_dialog->setLabelText(FileTransfer::errorString(error));
-            break;
+    case FileTransfer::LocalCancelledError:
+        break;
+    case FileTransfer::NoError:
+        QMessageBox::information(this, tr("Cutecom-ng"), QStringLiteral("File transferred successfully"));
+        break;
+    default:
+        progress_dialog->setLabelText(FileTransfer::errorString(error));
+        break;
     }
 
     // re-enable UI elements acting on QSerialPort instance
     ui->fileTransferButton->setEnabled(true);
-    ui->disconnectButton->setEnabled(true);
     ui->inputBox->setEnabled(true);
 }
 
@@ -412,21 +529,70 @@ void MainWindow::handleEOLCharChanged(int index)
 
     switch(ui->eolCombo->currentData().toInt())
     {
-        case CR:
-            _end_of_line = QByteArray("\r", 1);
-            break;
-        case LF:
-            _end_of_line = QByteArray("\n", 1);
-            break;
-        case CRLF:
-            _end_of_line = QByteArray("\r\n", 2);
-            break;
-        case None:
-            _end_of_line.clear();
-            break;
-        default:
-            Q_ASSERT_X(false, "MainWindow::handleEOLCharChanged",
-                       "unknown EOL char value: " + ui->eolCombo->currentData().toInt());
-            break;
+    case CR:
+        _end_of_line = QByteArray("\r", 1);
+        break;
+    case LF:
+        _end_of_line = QByteArray("\n", 1);
+        break;
+    case CRLF:
+        _end_of_line = QByteArray("\r\n", 2);
+        break;
+    case None:
+        _end_of_line.clear();
+        break;
+    default:
+        Q_ASSERT_X(false, "MainWindow::handleEOLCharChanged",
+                   "unknown EOL char value: " + ui->eolCombo->currentData().toInt());
+        break;
+    }
+}
+
+void MainWindow::on_connectButton_released()
+{
+    settings::setCurrentProfile(ui->profileComboBox->currentText());
+
+    if (ui->connectButton->isChecked()) {
+        emit openSession(ui->profileComboBox->currentText());
+    }
+    else {
+        emit closeSession();
+    }
+}
+
+void MainWindow::on_profileComboBox_currentTextChanged(const QString &arg1)
+{
+    refreshSettings(arg1);
+}
+
+void MainWindow::on_profileComboBox_activated(int index)
+{
+    //refreshSettings();
+}
+
+void MainWindow::on_deviceComboBox_highlighted(const QString &arg1)
+{
+    ui->hardwareLabel->setText(settings::getDescriptionOfProfile(arg1));
+}
+
+void MainWindow::on_profileComboBox_highlighted(const QString &arg1)
+{
+    ui->baudRateBox->setCurrentText(QString::number(settings::getBaudRateOfProfile(arg1)));
+
+    // Find correct device if it exists
+    QString _description = settings::getDescriptionOfProfile(arg1);
+
+    for (int i = 0; i < ui->deviceComboBox->count(); i++) {
+        //qDebug() << "Compare: "<< _description << " : " << settings::getDeviceDescription(ui->deviceComboBox->itemText(i));
+
+        if (QString::compare(_description, settings::getDeviceDescription(ui->deviceComboBox->itemText(i))) == 0) {
+            qDebug() << "Comparicon found";
+            ui->deviceComboBox->setCurrentIndex(i);
+            ui->deviceComboBox->setCurrentText(ui->deviceComboBox->currentText());
+            return;
+        }
+        else {
+            ui->deviceComboBox->setCurrentText("No device found");
+        }
     }
 }

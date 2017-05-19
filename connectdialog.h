@@ -13,6 +13,7 @@
 #define CONNECTDIALOG_H
 
 #include <QDialog>
+#include <QSettings>
 
 namespace Ui {
 class ConnectDialog;
@@ -40,6 +41,9 @@ public:
     ~ConnectDialog();
 
     void accept();
+    void closeEvent(QCloseEvent *event);
+
+    QSettings Settings;
 
 private:
     Ui::ConnectDialog *ui;
@@ -52,7 +56,11 @@ private:
     /**
      * \brief preselect serial port connection configuration
      */
-    void preselectPortConfig(const QHash<QString, QString>& settings);
+    void preselectPortConfig();
+    QHash<QString, QString> getCfg();
+
+    QHash<QString, QString> cfg;
+    QStringList profileList;
 
 
 signals:
@@ -70,7 +78,14 @@ signals:
      *  - "dump_file" full path of dump file
      *  - "dump_format" DumpFormat enum 'Raw' or 'Ascii'
      */
-    void openDeviceClicked(const QHash<QString, QString>& config);
+    void openDeviceClicked(QString profile);
+    void closedSignal();
+private slots:
+
+    void on_saveProfileButton_released();
+    void on_removeProfileButton_released();
+    void on_profileList_currentIndexChanged();
+    void on_deviceList_highlighted(const QString &arg1);
 };
 
 #endif // CONNECTDIALOG_H

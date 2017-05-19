@@ -12,10 +12,12 @@
 #include "connectdialog.h"
 #include "ui_connectdialog.h"
 
+#include <QDebug>
 #include <QList>
 #include <QHash>
 #include <QtSerialPort>
 #include <QSerialPortInfo>
+#include "settings.h"
 
 ConnectDialog::ConnectDialog(QWidget *parent) :
     QDialog(parent),
@@ -45,12 +47,20 @@ ConnectDialog::ConnectDialog(QWidget *parent) :
     default_cfg[QStringLiteral("dump_file")] = QStringLiteral("cutecom-ng.dump");
     default_cfg[QStringLiteral("dump_format")] = QString::number(Raw);
 
-    preselectPortConfig(default_cfg);
+    profileList = settings::getProfileList();
+    ui->profileList->addItems(profileList);
+    preselectPortConfig();
 }
 
 ConnectDialog::~ConnectDialog()
 {
     delete ui;
+}
+
+void ConnectDialog::closeEvent(QCloseEvent *event)
+{
+    QWidget::closeEvent(event);
+    emit closedSignal();
 }
 
 void ConnectDialog::fillSettingsLists()
@@ -65,7 +75,7 @@ void ConnectDialog::fillSettingsLists()
         // construct description tooltip
         QString tooltip;
 
-        // add decription if not empty
+        // add description if not empty
         if (!port_info.description().isEmpty())
             tooltip.append(port_info.description());
         if (!port_info.manufacturer().isEmpty())
@@ -85,21 +95,21 @@ void ConnectDialog::fillSettingsLists()
     // fill baud rates combo box
     QStringList baud_rates;
     baud_rates <<
-        QString::number(QSerialPort::Baud1200) << QString::number(QSerialPort::Baud2400);
+                  QString::number(QSerialPort::Baud1200) << QString::number(QSerialPort::Baud2400);
     baud_rates <<
-        QString::number(QSerialPort::Baud4800) << QString::number(QSerialPort::Baud9600);
+                  QString::number(QSerialPort::Baud4800) << QString::number(QSerialPort::Baud9600);
     baud_rates <<
-        QString::number(QSerialPort::Baud19200) << QString::number(QSerialPort::Baud38400);
+                  QString::number(QSerialPort::Baud19200) << QString::number(QSerialPort::Baud38400);
     baud_rates <<
-        QString::number(QSerialPort::Baud57600) << QString::number(QSerialPort::Baud115200);
+                  QString::number(QSerialPort::Baud57600) << QString::number(QSerialPort::Baud115200);
     ui->baudRateList->addItems(baud_rates);
 
     // fill data bits combo box
     QStringList data_bits;
     data_bits <<
-        QString::number(QSerialPort::Data5) << QString::number(QSerialPort::Data6);
+                 QString::number(QSerialPort::Data5) << QString::number(QSerialPort::Data6);
     data_bits <<
-        QString::number(QSerialPort::Data7) << QString::number(QSerialPort::Data8);
+                 QString::number(QSerialPort::Data7) << QString::number(QSerialPort::Data8);
     ui->dataBitsList->addItems(data_bits);
 
     // fill stop bits combo box
@@ -122,27 +132,44 @@ void ConnectDialog::fillSettingsLists()
     ui->flowControlList->addItem(QStringLiteral("Software"), QSerialPort::SoftwareControl);
 }
 
-void ConnectDialog::preselectPortConfig(const QHash<QString, QString>& settings)
+void ConnectDialog::preselectPortConfig()
 {
-    ui->deviceList->setCurrentText(settings[QStringLiteral("device")]);
-    ui->baudRateList->setCurrentText(settings[QStringLiteral("baud_rate")]);
-    ui->dataBitsList->setCurrentText(settings[QStringLiteral("data_bits")]);
-    ui->stopBitsList->setCurrentText(settings[QStringLiteral("stop_bits")]);
 
-    ui->parityList->setCurrentText(settings[QStringLiteral("parity")]);
-    ui->flowControlList->setCurrentText(settings[QStringLiteral("flow_control")]);
+    QHash<QString, QString> cfg;
+    qDebug() << "Port config";
 
-    ui->dumpFile->setChecked(settings[QStringLiteral("dump_enabled")] == "1");
-    ui->dumpPath->setText(settings[QStringLiteral("dump_file")]);
-    ui->dumpRawFmt->setChecked(settings["dump_format"] == QString::number(Raw));
-    ui->dumpTextFmt->setChecked(settings["dump_format"] == QString::number(Ascii));
+    cfg = settings::loadSettings(ui->profileList->currentText());
+
+    ui->deviceList->setCurrentText(cfg[QStringLiteral("device")]);
+    ui->baudRateList->setCurrentText(cfg[QStringLiteral("baud_rate")]);
+    ui->dataBitsList->setCurrentText(cfg[QStringLiteral("data_bits")]);
+    ui->stopBitsList->setCurrentText(cfg[QStringLiteral("stop_bits")]);
+
+    ui->parityList->setCurrentText(cfg[QStringLiteral("parity")]);
+    ui->flowControlList->setCurrentText(cfg[QStringLiteral("flow_control")]);
+
+    ui->dumpFile->setChecked(cfg[QStringLiteral("dump_enabled")] == "1");
+    ui->dumpPath->setText(cfg[QStringLiteral("dump_file")]);
+    ui->dumpRawFmt->setChecked(cfg["dump_format"] == QString::number(Raw));
+    ui->dumpTextFmt->setChecked(cfg["dump_format"] == QString::number(Ascii));
 }
 
 void ConnectDialog::accept()
 {
     // create a serial port config object from current selection
-    QHash<QString, QString> cfg;
+    cfg = getCfg();
+    hide();
+
+    settings::saveSettings(cfg, ui->profileList->currentText());
+    settings::setCurrentProfile(ui->profileList->currentText());
+
+    emit openDeviceClicked(ui->profileList->currentText());
+}
+
+QHash<QString, QString> ConnectDialog::getCfg()
+{
     cfg[QStringLiteral("device")] = ui->deviceList->currentText();
+    cfg[QStringLiteral("description")] = settings::getDeviceDescription(ui->deviceList->currentText());
     cfg[QStringLiteral("baud_rate")] = ui->baudRateList->currentText();
     cfg[QStringLiteral("data_bits")] = ui->dataBitsList->currentText();
     cfg[QStringLiteral("stop_bits")] = ui->stopBitsList->itemData(
@@ -155,7 +182,53 @@ void ConnectDialog::accept()
     cfg[QStringLiteral("dump_file")] = ui->dumpPath->text();
     cfg[QStringLiteral("dump_format")] = QString::number(ui->dumpRawFmt->isChecked() ? Raw : Ascii);
 
-    hide();
+    return cfg;
+}
 
-    emit openDeviceClicked(cfg);
+void ConnectDialog::on_saveProfileButton_released()
+{
+    int index = profileList.indexOf(ui->profileList->currentText());
+    if (index >= 0) {
+        qDebug() << "Index: " << index;
+        profileList.replace(index, ui->profileList->currentText());
+    }
+    else {
+        profileList.append(ui->profileList->currentText());
+        ui->profileList->addItem(ui->profileList->currentText());
+    }
+
+    cfg = getCfg();
+
+    settings::saveProfileList(profileList);
+    settings::saveSettings(cfg, ui->profileList->currentText());
+}
+
+void ConnectDialog::on_removeProfileButton_released()
+{
+    int index = profileList.indexOf(ui->profileList->currentText());
+    qDebug() << "Before remove list: " << profileList;
+    profileList.removeAt(index);
+    qDebug() << "After remove list: " << profileList;
+    ui->profileList->clear();
+    ui->profileList->addItems(profileList);
+    settings::saveProfileList(profileList);
+
+}
+
+void ConnectDialog::on_profileList_currentIndexChanged()
+{
+    cfg = settings::loadSettings(ui->profileList->currentText());
+    preselectPortConfig();
+}
+
+void ConnectDialog::on_deviceList_highlighted(const QString &arg1)
+{
+    QString _description = settings::getDeviceDescription(arg1);
+
+    if (_description != "none") {
+        ui->portInfoLabel->setText(_description);
+    }
+    else {
+        ui->portInfoLabel->setText("Error: Not connected");
+    }
 }

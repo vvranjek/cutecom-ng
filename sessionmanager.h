@@ -62,7 +62,7 @@ public:
      * \brief open a serial port session
      * \param port_cfg    serial port settings
      */
-    void openSession(const QHash<QString, QString> &port_cfg);
+	void openSession(QString profile);
 
     /**
      * \brief close current serial port session

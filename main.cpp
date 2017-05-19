@@ -16,6 +16,8 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    QCoreApplication::setOrganizationName("Cutecom");
+    QCoreApplication::setApplicationName("Settings");
     a.setStyle(QStyleFactory::create("Fusion"));
     MainWindow w;
     w.show();
