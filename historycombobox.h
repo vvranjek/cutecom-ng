@@ -27,8 +27,11 @@ class HistoryComboBox : public QComboBox
 private:
     History *history;
 
+    void addLineToFile(QString line);
+
 public:
     HistoryComboBox(QWidget *parent = 0);
+    void loadHistory(QString profile);
 
 signals:
     void lineEntered(const QString);

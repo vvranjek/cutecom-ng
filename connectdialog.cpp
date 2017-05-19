@@ -134,7 +134,6 @@ void ConnectDialog::fillSettingsLists()
 
 void ConnectDialog::preselectPortConfig()
 {
-
     QHash<QString, QString> cfg;
     qDebug() << "Port config";
 
@@ -144,6 +143,7 @@ void ConnectDialog::preselectPortConfig()
     ui->baudRateList->setCurrentText(cfg[QStringLiteral("baud_rate")]);
     ui->dataBitsList->setCurrentText(cfg[QStringLiteral("data_bits")]);
     ui->stopBitsList->setCurrentText(cfg[QStringLiteral("stop_bits")]);
+    ui->portInfoLabel->setText(cfg[QStringLiteral("description")]);
 
     ui->parityList->setCurrentText(cfg[QStringLiteral("parity")]);
     ui->flowControlList->setCurrentText(cfg[QStringLiteral("flow_control")]);
@@ -163,7 +163,7 @@ void ConnectDialog::accept()
     settings::saveSettings(cfg, ui->profileList->currentText());
     settings::setCurrentProfile(ui->profileList->currentText());
 
-    emit openDeviceClicked(ui->profileList->currentText());
+    emit closeSettingsClicked(ui->profileList->currentText());
 }
 
 QHash<QString, QString> ConnectDialog::getCfg()

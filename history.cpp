@@ -10,10 +10,11 @@
  */
 
 #include "history.h"
+#include "settings.h"
 
 History::History(QObject *parent)
     : QObject(parent),
-      max_entries(10)
+      max_entries(100)
 {
     _current = -1;
 }

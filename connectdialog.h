@@ -78,7 +78,7 @@ signals:
      *  - "dump_file" full path of dump file
      *  - "dump_format" DumpFormat enum 'Raw' or 'Ascii'
      */
-    void openDeviceClicked(QString profile);
+    void closeSettingsClicked(QString profile);
     void closedSignal();
 private slots:
 

@@ -40,7 +40,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     search_widget(0),
     search_input(0),
-    progress_dialog(0)
+    progress_dialog(0),
+    tempFile("/home/"+qgetenv("USER")+".cutecom/tempfile"),
+    file(tempFile)
 {
     ui->setupUi(this);
 
@@ -61,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // get data formatted for display and show it in output view
     connect(ui->inputBox, &HistoryComboBox::lineEntered, this, &MainWindow::handleNewInput);
+    connect(ui->inputBox, &HistoryComboBox::lineEntered, this, &MainWindow::handleNewInput);
 
     // handle start/stop session
     connect(session_mgr, &SessionManager::sessionOpened, this, &MainWindow::handleSessionOpened);
@@ -72,7 +75,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // connect open/close session slots
     connect(this, &MainWindow::openSession, session_mgr, &SessionManager::openSession);
-    connect(connect_dlg, &ConnectDialog::openDeviceClicked, session_mgr, &SessionManager::openSession);
+    connect(connect_dlg, &ConnectDialog::closeSettingsClicked, this, &MainWindow::refreshSettings);
     connect(this, &MainWindow::closeSession, session_mgr, &SessionManager::closeSession);
 
     connect(ui->splitOutputBtn, &QPushButton::clicked, this, &MainWindow::toggleOutputSplitter);
@@ -157,6 +160,10 @@ MainWindow::MainWindow(QWidget *parent) :
     _currentProfile = settings::getCurrentProfile();
     ui->baudRateBox->setCurrentText(QString::number(settings::getBaudRateOfProfile(_currentProfile)));
     ui->profileComboBox->setCurrentText(_currentProfile);
+
+    ui->inputBox->loadHistory(settings::getCurrentProfile());
+      //  ui->inputBox->setLayoutDirection(Qt::RightToLeft);
+
 }
 
 void MainWindow::fillSettingsLists()
@@ -249,6 +256,8 @@ void MainWindow::refreshSettings(QString profile)
 {
         QHash<QString, QString> cfg;
         cfg = settings::loadSettings(profile);
+        ui->profileComboBox->setCurrentText(profile);
+        ui->hardwareLabel->setText(cfg[QStringLiteral("description")]);
         ui->deviceComboBox->setCurrentText(cfg[QStringLiteral("device")]);
         ui->baudRateBox->setCurrentText(cfg[QStringLiteral("baud_rate")]);
         ui->parityComboBox->setCurrentText(cfg[QStringLiteral("parity")]);
@@ -272,6 +281,7 @@ void MainWindow::handleSessionOpened()
     // enable file transfer and input line
     ui->fileTransferButton->setEnabled(true);
     ui->inputBox->setEnabled(true);
+    ui->inputBox->setFocus();
 }
 
 void MainWindow::handleSessionClosed()
@@ -565,11 +575,6 @@ void MainWindow::on_profileComboBox_currentTextChanged(const QString &arg1)
     refreshSettings(arg1);
 }
 
-void MainWindow::on_profileComboBox_activated(int index)
-{
-    //refreshSettings();
-}
-
 void MainWindow::on_deviceComboBox_highlighted(const QString &arg1)
 {
     ui->hardwareLabel->setText(settings::getDescriptionOfProfile(arg1));
@@ -596,3 +601,4 @@ void MainWindow::on_profileComboBox_highlighted(const QString &arg1)
         }
     }
 }
+
