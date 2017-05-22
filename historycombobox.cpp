@@ -42,34 +42,40 @@ void HistoryComboBox::keyPressEvent(QKeyEvent *e)
 {
     switch (e->key())
     {
-        case Qt::Key_Up:
-            setCurrentIndex(0);
-            setItemText(0, history->previous());
-            fillList(lineEdit()->text());
-            break;
+    case Qt::Key_Up:
+        setCurrentIndex(0);
+        setItemText(0, history->previous());
+        fillList(lineEdit()->text());
+        break;
 
-        case Qt::Key_Down:
-            setCurrentIndex(0);
-            setItemText(0, history->next());
-            fillList(lineEdit()->text());
-            break;
-        case Qt::Key_Return:
-        case Qt::Key_Enter:
+    case Qt::Key_Down:
+        setCurrentIndex(0);
+        setItemText(0, history->next());
+        fillList(lineEdit()->text());
+        break;
+    case Qt::Key_Return:
+    case Qt::Key_Enter:
+    {
+        QString line = lineEdit()->text();
+        if (line.length() > 0)
         {
-            QString line = lineEdit()->text();
-            if (line.length() > 0)
-            {
-                // don't treat empty input
-                history->add(line);
-                addLineToFile(line);
-                fillList("");
-                emit lineEntered(line);
-            }
-            break;
+            // don't treat empty input
+            history->add(line);
+            addLineToFile(line);
+            fillList("");
+            emit lineEntered(line);
         }
-        default:
-            QComboBox::keyPressEvent(e);
-            break;
+        break;
+    }
+    case Qt::Key_Escape:
+    {
+        setCurrentText("");
+    }
+        break;
+
+    default:
+        QComboBox::keyPressEvent(e);
+        break;
     }
 }
 

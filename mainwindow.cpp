@@ -41,8 +41,8 @@ MainWindow::MainWindow(QWidget *parent) :
     search_widget(0),
     search_input(0),
     progress_dialog(0),
-    tempFile("/home/"+qgetenv("USER")+".cutecom/tempfile"),
-    file(tempFile)
+    tempFileName("/home/"+qgetenv("USER")+"/.cutecom/tempfile"),
+    tempFile(tempFileName)
 {
     ui->setupUi(this);
 
@@ -426,6 +426,8 @@ void MainWindow::addDataToView(const QString & textdata)
     // append text to bottom output and scroll
     ui->bottomOutput->moveCursor(QTextCursor::End);
     ui->bottomOutput->insertPlainText(newdata);
+    ui->bottomOutput->insertPlainText(textdata);
+    appendToLogFile(newdata);
 }
 
 void MainWindow::handleDataReceived(const QByteArray &data)
@@ -562,6 +564,8 @@ void MainWindow::on_connectButton_released()
 {
     settings::setCurrentProfile(ui->profileComboBox->currentText());
 
+    tempFile.remove();
+
     if (ui->connectButton->isChecked()) {
         emit openSession(ui->profileComboBox->currentText());
     }
@@ -602,3 +606,29 @@ void MainWindow::on_profileComboBox_highlighted(const QString &arg1)
     }
 }
 
+void MainWindow::appendToLogFile(QString text)
+{
+
+    // Create path if it doesnt exist
+    if (!tempFile.exists()) {
+        QDir _dir;
+        _dir.mkdir("/home/"+qgetenv("USER")+"/.cutecom/");
+        qDebug() << "Tempfile doesn't exist";
+    }
+
+    if (tempFile.open(QIODevice::WriteOnly | QIODevice::Append)) {
+        qDebug() << "Appending to log file:" << text;
+
+        QTextStream stream(&tempFile);
+        stream << text;
+    }
+    else {
+        qDebug() << "Error opening temp file";
+    }
+    tempFile.close();
+}
+
+void MainWindow::on_clearButton_clicked()
+{
+    tempFile.remove();
+}

@@ -148,8 +148,10 @@ private:
 
     void refreshSettings(QString profile);
 
-    QString tempFile;
-    QFile file;
+    void appendToLogFile(QString text);
+
+    QString tempFileName;
+    QFile tempFile;
 
 signals:
     void openSession(QString profile);
@@ -160,6 +162,7 @@ private slots:
     void on_profileComboBox_currentTextChanged(const QString &arg1);
     void on_deviceComboBox_highlighted(const QString &arg1);
     void on_profileComboBox_highlighted(const QString &arg1);
+    void on_clearButton_clicked();
 };
 
 #endif // MAINWINDOW_H
