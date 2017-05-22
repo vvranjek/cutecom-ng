@@ -7,4 +7,4 @@ echo
 qmake -v
 qmake
 make
-ldd bin/cutecom-ng
+ldd bin/serial-ninja

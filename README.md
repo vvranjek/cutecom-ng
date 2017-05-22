@@ -1,6 +1,6 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/github/develersrl/cutecom-ng)](https://ci.appveyor.com/project/develer/cutecom-ng)
+[![Build status](https://ci.appveyor.com/api/projects/status/github/develersrl/serial-ninja)](https://ci.appveyor.com/project/develer/serial-ninja)
 
-[![Build status](https://travis-ci.org/develersrl/cutecom-ng.svg?branch=master)](https://travis-ci.org/develersrl/cutecom-ng)
+[![Build status](https://travis-ci.org/develersrl/serial-ninja.svg?branch=master)](https://travis-ci.org/develersrl/serial-ninja)
 
 # Cutecom-ng #
 
@@ -10,7 +10,7 @@ Cutecom-ng is a graphical serial port terminal,<br>
 
 ## Screenshot
 
-![Cutecom-ng screenshot](cutecom-ng.screenshot.png)
+![Cutecom-ng screenshot](serial-ninja.screenshot.png)
 ## Features
 
  - auto-detection of serial ports
@@ -28,7 +28,7 @@ Cutecom-ng is a graphical serial port terminal,<br>
 
 ### Download pre-built binaries
 
-They are all available [here](https://github.com/develersrl/cutecom-ng/releases)
+They are all available [here](https://github.com/develersrl/serial-ninja/releases)
 
  - **deb package** for debian based **Linux** flavors
  - **dmg archive** for **Mac OSX**
@@ -36,9 +36,9 @@ They are all available [here](https://github.com/develersrl/cutecom-ng/releases)
 
 #### Debian based distributions: Ubuntu, Mint, etc.
 
-1. download the debian package file [here](https://github.com/develersrl/cutecom-ng/releases)
+1. download the debian package file [here](https://github.com/develersrl/serial-ninja/releases)
 
-2. ```sudo dpkg -i cutecom-ng_0.5_amd64.deb``` <br>
+2. ```sudo dpkg -i serial-ninja_0.5_amd64.deb``` <br>
 
 3. if dpkg complains about some missing dependencies, run:
 
@@ -47,7 +47,7 @@ or install them yourself
 
 #### Mac OSX
 
-Install **cutecom-ng.dmg**
+Install **serial-ninja.dmg**
 
 #### Windows
 
@@ -60,14 +60,14 @@ Follow the steps in *Build the release yourself*
 
 ### Build the release yourself
 
-If you want the latest cutecom-ng improvements, not yet available in a pre-built binary, or if your pre-built binaries are not available for your platform
+If you want the latest serial-ninja improvements, not yet available in a pre-built binary, or if your pre-built binaries are not available for your platform
 
 1. download / install Qt5 and the QSerialPort add-on
 
-2. clone cutecom-ng repository:  
-```git clone https://github.com/develersrl/cutecom-ng```
+2. clone serial-ninja repository:  
+```git clone https://github.com/develersrl/serial-ninja```
 
-3. open ./cutecom-ng/cutecom-ng.pro with QtCreator
+3. open ./serial-ninja/serial-ninja.pro with QtCreator
 4. build with Qt version 5.5.1
 
 ## Usage / Tips
@@ -88,7 +88,7 @@ you can easily emulate a serial port with **gnu-screen**
 To emulate a null-modem connection, you can use **socat** and
 **gnu-screen**.
 
-In our example, we will transmit a file with **cutecom-ng** using the XModem
+In our example, we will transmit a file with **serial-ninja** using the XModem
 protocol, to a virtual serial port created with socat.<br>**screen** and **rx**
 are handling the XModem reception
 
@@ -128,12 +128,12 @@ directory you were when you opened the screen session.
 
 ### more fun with socat :
 
-#### use cutecom-ng as a shell terminal :
+#### use serial-ninja as a shell terminal :
 do
 ```
 socat -d -d pty,raw,echo=1 SYSTEM:"/bin/bash"
 ```
-and connect cutecom-ng to the PTY created by socat
+and connect serial-ninja to the PTY created by socat
 
 ## Contributions/Bugs
 

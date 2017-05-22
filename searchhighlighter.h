@@ -4,7 +4,7 @@
  * Copyright 2015 Develer S.r.l. (http://www.develer.com/)
  * -->
  *
- * \brief cutecom-ng search result highlighter header
+ * \brief serial-ninja search result highlighter header
  *
  * \author Aurelien Rainone <aurelien@develer.com>
  */

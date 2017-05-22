@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>cutecom-ng</string>
+   <string>serial-ninja</string>
   </property>
   <property name="dockOptions">
    <set>QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks</set>
@@ -400,7 +400,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="cutecom-ng.qrc">
+         <iconset resource="serial-ninja.qrc">
           <normaloff>:/v-splitter.png</normaloff>:/v-splitter.png</iconset>
         </property>
         <property name="checkable">
@@ -422,7 +422,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="cutecom-ng.qrc"/>
+  <include location="serial-ninja.qrc"/>
  </resources>
  <connections/>
 </ui>

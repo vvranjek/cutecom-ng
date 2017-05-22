@@ -4,7 +4,7 @@
  * Copyright 2015 Develer S.r.l. (http://www.develer.com/)
  * -->
  *
- * \brief main cutecom-ng window
+ * \brief main serial-ninja window
  *
  * \author Aurelien Rainone <aurelien@develer.com>
  */

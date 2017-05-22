@@ -82,7 +82,7 @@
       <string/>
      </property>
      <property name="icon">
-      <iconset resource="cutecom-ng.qrc">
+      <iconset resource="serial-ninja.qrc">
        <normaloff>:/chevron-up.png</normaloff>:/chevron-up.png</iconset>
      </property>
     </widget>
@@ -93,7 +93,7 @@
       <string/>
      </property>
      <property name="icon">
-      <iconset resource="cutecom-ng.qrc">
+      <iconset resource="serial-ninja.qrc">
        <normaloff>:/chevron-down.png</normaloff>:/chevron-down.png</iconset>
      </property>
     </widget>
@@ -101,7 +101,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="cutecom-ng.qrc"/>
+  <include location="serial-ninja.qrc"/>
  </resources>
  <connections/>
 </ui>

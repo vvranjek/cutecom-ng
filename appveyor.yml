@@ -11,7 +11,7 @@ build:
 environment:
   QTDIR: C:\Qt\5.5\mingw492_32
   MINGW: C:\Qt\Tools\mingw492_32
-  TARGET: cutecom-ng
+  TARGET: serial-ninja
 
 configuration: Release
 
@@ -21,7 +21,7 @@ install:
   - set PATH=%PATH%;"C:\Program Files\7-Zip"
 
 before_build:
-  - qmake cutecom-ng.pro
+  - qmake serial-ninja.pro
   # generate name for releases
   - ps: >-
       if($env:APPVEYOR_REPO_TAG -eq 'true') {
@@ -35,7 +35,7 @@ before_build:
 
 build_script:
   - mingw32-make -j8
-  - windeployqt %APPVEYOR_BUILD_FOLDER%\bin\cutecom-ng.exe
+  - windeployqt %APPVEYOR_BUILD_FOLDER%\bin\serial-ninja.exe
   # add missing libwinpthread-1.dll
   - copy /Y %QTDIR%\bin\libwinpthread-1.dll %APPVEYOR_BUILD_FOLDER%\bin
 

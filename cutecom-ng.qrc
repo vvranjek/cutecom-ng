@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>v-splitter.png</file>
-        <file>chevron-up.png</file>
-        <file>chevron-down.png</file>
-        <file>searchwidget.ui</file>
-    </qresource>
-</RCC>

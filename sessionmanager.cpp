@@ -119,8 +119,8 @@ void SessionManager::openSession(const QString profile)
     // after calling setPortName with a full device name (eg: /dev/ttyUSB01)
 
     // issues:
-    // - https://github.com/develersrl/cutecom-ng/issues/7
-    // - https://github.com/develersrl/cutecom-ng/issues/17
+    // - https://github.com/develersrl/serial-ninja/issues/7
+    // - https://github.com/develersrl/serial-ninja/issues/17
     // this is a QSerialPort bug, corrected for Qt > 5.5:
     // - https://codereview.qt-project.org/#/c/108571/
     if (port_cfg[QStringLiteral("device")].contains('/'))

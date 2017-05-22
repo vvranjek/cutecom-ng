@@ -44,7 +44,7 @@ ConnectDialog::ConnectDialog(QWidget *parent) :
 
     // define the default values for output dump
     default_cfg[QStringLiteral("dump_enabled")] = QString::number(0);
-    default_cfg[QStringLiteral("dump_file")] = QStringLiteral("cutecom-ng.dump");
+    default_cfg[QStringLiteral("dump_file")] = QStringLiteral("serial-ninja.dump");
     default_cfg[QStringLiteral("dump_format")] = QString::number(Raw);
 
     profileList = settings::getProfileList();
