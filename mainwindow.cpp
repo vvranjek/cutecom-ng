@@ -63,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // get data formatted for display and show it in output view
     connect(ui->inputBox, &HistoryComboBox::lineEntered, this, &MainWindow::handleNewInput);
-    connect(ui->inputBox, &HistoryComboBox::lineEntered, this, &MainWindow::handleNewInput);
+   // connect(ui->inputBox, &HistoryComboBox::lineEntered, this, &MainWindow::handleNewInput);
 
     // handle start/stop session
     connect(session_mgr, &SessionManager::sessionOpened, this, &MainWindow::handleSessionOpened);
@@ -377,6 +377,8 @@ void MainWindow::handleNewInput(QString entry)
 
 void MainWindow::addDataToView(const QString & textdata)
 {
+    //qDebug() << "textdata: " << textdata;
+
     // problem : QTextEdit interprets a '\r' as a new line, so if a buffer ending
     //           with '\r\n' happens to be cut in the middle, there will be 1 extra
     //           line jump in the QTextEdit. To prevent we remove ending '\r' and
@@ -426,7 +428,7 @@ void MainWindow::addDataToView(const QString & textdata)
     // append text to bottom output and scroll
     ui->bottomOutput->moveCursor(QTextCursor::End);
     ui->bottomOutput->insertPlainText(newdata);
-    ui->bottomOutput->insertPlainText(textdata);
+    //ui->bottomOutput->insertPlainText(textdata);
     appendToLogFile(newdata);
 }
 
@@ -631,4 +633,66 @@ void MainWindow::appendToLogFile(QString text)
 void MainWindow::on_clearButton_clicked()
 {
     tempFile.remove();
+}
+
+void MainWindow::on_saveButton_released()
+{
+    while (true) {
+        QString fileName = QFileDialog::getOpenFileName(
+                    this, QStringLiteral("Save session to.."));
+
+        if (fileName.isNull()) {
+            qDebug() << "Filename error";
+            break;
+        }
+        else {
+            QFile file(fileName);
+
+            qDebug() << "Copying: " << tempFileName << " to " << fileName;
+
+            // Check if file exists and ask if overwrite
+            if (QFile::exists(fileName))
+            {
+                QMessageBox::StandardButton reply;
+                reply = QMessageBox::question(this, "Overwrite file?", "File exists, overwrite?", QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+                if (reply == QMessageBox::Yes) {
+                    qDebug() << "Yes, overwite was clicked";
+                    QFile::remove(fileName);
+                    //break;
+                }
+                else if (reply == QMessageBox::Cancel) {
+                    qDebug() << "Yes was *not* clicked";
+                    return;
+                }
+                else if (reply == QMessageBox::No) {
+                    qDebug() << "Yes was *not* clicked";
+                    continue;
+                }
+                else {
+                    return;
+                }
+            }
+            else {
+                if (!file.open(QIODevice::WriteOnly)) {
+                    QMessageBox::information(this, tr("Unable to open file"),
+                                             file.errorString());
+                    return;
+                }
+            }
+
+            // This is a temp solution because File.copy doesn't work for some reason
+            QString cpString = "cp "+tempFileName+" "+fileName;
+            //  int cp_error = system(cpString.toLatin1());
+
+            if (system(cpString.toLatin1()) > 0) {
+                QMessageBox::warning(this, "Warning", "Error " + cpString);
+                       // QMessageBox::warning(this, "Warning", "Error ("+QStrin)
+            }
+            else {
+                break;
+            }
+
+            //QFile::copy(tempFileName, fileName);
+        }
+    }
 }

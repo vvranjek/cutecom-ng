@@ -163,6 +163,7 @@ private slots:
     void on_deviceComboBox_highlighted(const QString &arg1);
     void on_profileComboBox_highlighted(const QString &arg1);
     void on_clearButton_clicked();
+    void on_saveButton_released();
 };
 
 #endif // MAINWINDOW_H
