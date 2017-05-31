@@ -147,14 +147,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     refreshSettings(settings::getCurrentProfile());
 
-    // fill devices combo box
-    QList<QSerialPortInfo> ports(QSerialPortInfo::availablePorts());
-    for (int idx = 0; idx < ports.length(); ++idx)
-    {
-        const QSerialPortInfo& port_info = ports.at(idx);
-        ui->deviceComboBox->addItem(port_info.systemLocation());
-    }
-
     // Set values of current profile
     QString _currentProfile;
     _currentProfile = settings::getCurrentProfile();
@@ -168,6 +160,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::fillSettingsLists()
 {
+    ui->deviceComboBox->clear();
     // fill devices combo box
     QList<QSerialPortInfo> ports(QSerialPortInfo::availablePorts());
     for (int idx = 0; idx < ports.length(); ++idx)
@@ -258,7 +251,12 @@ void MainWindow::refreshSettings(QString profile)
         cfg = settings::loadSettings(profile);
         ui->profileComboBox->setCurrentText(profile);
         ui->hardwareLabel->setText(cfg[QStringLiteral("description")]);
-        ui->deviceComboBox->setCurrentText(cfg[QStringLiteral("device")]);
+	
+	// Find and set existing port index
+        QString textToFind = cfg[QStringLiteral("device")];
+        int index = ui->deviceComboBox->findText(textToFind);
+        ui->deviceComboBox->setCurrentIndex(index);
+
         ui->baudRateBox->setCurrentText(cfg[QStringLiteral("baud_rate")]);
         ui->parityComboBox->setCurrentText(cfg[QStringLiteral("parity")]);
         ui->flowComboBox->setCurrentText(cfg[QStringLiteral("flow_control")]);
@@ -319,8 +317,7 @@ void MainWindow::handleFileTransfer()
             this, &MainWindow::handleFileTransferProgressed);
 
     int protocol = ui->protocolCombo->currentData().toInt();
-    session_mgr->transferFile(filename,
-                              static_cast<SessionManager::Protocol>(protocol));
+    session_mgr->transferFile(filename, static_cast<SessionManager::Protocol>(protocol));
 
     // disable UI elements acting on QSerialPort instance, as long as
     // objectds involved in FileTransferred are not destroyed or back
@@ -377,34 +374,48 @@ void MainWindow::handleNewInput(QString entry)
 
 void MainWindow::addDataToView(const QString & textdata)
 {
-    //qDebug() << "textdata: " << textdata;
-
-    // problem : QTextEdit interprets a '\r' as a new line, so if a buffer ending
-    //           with '\r\n' happens to be cut in the middle, there will be 1 extra
-    //           line jump in the QTextEdit. To prevent we remove ending '\r' and
-    //           prepend them to the next received buffer
-
-    // flag indicating that the previously received buffer ended with CR
-    static bool prev_ends_with_CR = false;
-
     QString newdata;
-    if (prev_ends_with_CR)
-    {
-        // CR was removed at the previous buffer, so now we prepend it
-        newdata.append('\r');
-        prev_ends_with_CR = false;
-    }
 
-    if (textdata.length() > 0)
-    {
-        QString::const_iterator end_cit = textdata.cend();
-        if (textdata.endsWith('\r'))
+    if (!ui->asciiHexButton->isChecked()) {
+
+        // problem : QTextEdit interprets a '\r' as a new line, so if a buffer ending
+        //           with '\r\n' happens to be cut in the middle, there will be 1 extra
+        //           line jump in the QTextEdit. To prevent we remove ending '\r' and
+        //           prepend them to the next received buffer
+
+        // flag indicating that the previously received buffer ended with CR
+        static bool prev_ends_with_CR = false;
+
+        if (prev_ends_with_CR)
         {
-            // if buffer ends with CR, we don't copy it
-            end_cit--;
-            prev_ends_with_CR = true;
+            // CR was removed at the previous buffer, so now we prepend it
+            newdata.append('\r');
+            prev_ends_with_CR = false;
         }
-        std::copy(textdata.begin(), end_cit, std::back_inserter(newdata));
+
+        if (textdata.length() > 0)
+        {
+            QString::const_iterator end_cit = textdata.cend();
+            if (textdata.endsWith('\r'))
+            {
+                // if buffer ends with CR, we don't copy it
+                end_cit--;
+                prev_ends_with_CR = true;
+            }
+            std::copy(textdata.begin(), end_cit, std::back_inserter(newdata));
+        }
+    }
+    else {
+
+        newdata.clear();
+        QByteArray ba = textdata.toUtf8();
+        for (int i = 0; i < ba.size(); i++) {
+
+            //ba.append(textdata.at(i));
+
+            newdata.append(QString::number(ba.at(i), 16).toUpper());
+            newdata.append(" ");
+        }
     }
 
     // record end cursor position before adding text
@@ -565,11 +576,21 @@ void MainWindow::handleEOLCharChanged(int index)
 void MainWindow::on_connectButton_released()
 {
     settings::setCurrentProfile(ui->profileComboBox->currentText());
-
     tempFile.remove();
 
     if (ui->connectButton->isChecked()) {
-        emit openSession(ui->profileComboBox->currentText());
+        QHash<QString, QString> current_settings;
+
+        current_settings[QStringLiteral("device")] = ui->deviceComboBox->currentText();
+        current_settings[QStringLiteral("description")] = ui->hardwareLabel->text();
+        current_settings[QStringLiteral("baud_rate")] = ui->baudRateBox->currentText();
+        current_settings[QStringLiteral("data_bits")] = ui->dataBitsComboBox->currentText();
+        current_settings[QStringLiteral("stop_bits")] = ui->StopBitsComboBox->currentText();
+        current_settings[QStringLiteral("parity")] = ui->parityComboBox->currentData().toString();
+        current_settings[QStringLiteral("flow_control")] = ui->flowComboBox->currentData().toString();
+
+        settings::saveSettings(current_settings, "Current_settings");
+        emit openSession(QString::fromLocal8Bit("Current_settings"));
     }
     else {
         emit closeSession();
@@ -696,3 +717,9 @@ void MainWindow::on_saveButton_released()
         }
     }
 }
+
+void MainWindow::on_deviceComboBox_activated(const QString &arg1)
+{
+    fillSettingsLists();
+}
+
