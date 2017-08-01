@@ -22,7 +22,7 @@ void OutputManager::operator << (const QByteArray &data)
     _buffer.append(data);
 
     // notify that we have new data
-    emit dataConverted(QString(data));
+    emit dataConverted(data);
 }
 
 const QByteArray& OutputManager::buffer()

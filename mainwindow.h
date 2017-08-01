@@ -93,7 +93,7 @@ private:
     /**
      * \brief add data to the output view
      */
-    void addDataToView(const QString & textdata);
+    void addDataToView(const QByteArray data);
 
     /**
      * \brief handle arrival of new data

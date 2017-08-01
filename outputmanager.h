@@ -51,7 +51,7 @@ public:
 
 signals:
 
-    void dataConverted(const QString & data);
+    void dataConverted(const QByteArray & data);
 };
 
 #endif // OUTPUTMANAGER_H

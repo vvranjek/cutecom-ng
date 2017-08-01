@@ -406,9 +406,10 @@ void MainWindow::handleNewInput(QString entry)
     }
 }
 
-void MainWindow::addDataToView(const QString & textdata)
+void MainWindow::addDataToView(const QByteArray data)
 {
     QString newdata;
+    const QString textdata = QString::fromLocal8Bit(data.data());
 
     if (!ui->asciiHexButton->isChecked()) {
 
@@ -442,14 +443,14 @@ void MainWindow::addDataToView(const QString & textdata)
     else {
 
         newdata.clear();
-        QByteArray ba;// = QByteArray::fromHex(textdata.toUtf8());
+        QByteArray ba = data;// = QByteArray::fromHex(textdata.toUtf8());
 
 
-        for (int i = 0; i < textdata.size(); i++) {
+//        for (int i = 0; i < textdata.size(); i++) {
 
-            qDebug("Appending %d to ba: %c", i, textdata.at(i));
-            ba.append(textdata.at(i));
-        }
+//            qDebug("Appending %d to ba: %c", i, textdata.at(i));
+//            ba.append(textdata.at(i));
+//        }
 
 
         qDebug() << "BA:" << ba;
@@ -460,9 +461,9 @@ void MainWindow::addDataToView(const QString & textdata)
 
             //ba.append(textdata.at(i));
 
-            newdata.append(QString::number(ba.at(i), 16).toUpper());
+            newdata.append(QString::number((unsigned char)ba.at(i), 16).toUpper());
 
-             qDebug() << "newdata: "<< (int)ba.at(i) << ", (%d):" << QString::number(ba.at(i), 16).toUpper();
+             qDebug() << "newdata: "<< (unsigned char)ba.at(i) << ", (%d):" << QString::number(ba.at(i), 16).toUpper();
 
             newdata.append(" ");
 
