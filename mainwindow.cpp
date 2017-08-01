@@ -22,6 +22,7 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QSerialPortInfo>
+#include <QTimer>
 #include <QDebug>
 
 #include "mainwindow.h"
@@ -45,6 +46,20 @@ MainWindow::MainWindow(QWidget *parent) :
     tempFile(tempFileName)
 {
     ui->setupUi(this);
+
+
+    //qDebug() << GIT_VERSION;
+    //QString version(GIT_VERSION);
+    setWindowTitle("test");
+
+
+#define _STR(X) #X
+#define STR(X) _STR(X)
+   // QString version = APP_REVISION;
+//qDebug() << "MyApp revision " << version << endl;
+//qDebug("VERSION: %s :\n", QString(VER1));
+
+
 
     // create session and output managers
     output_mgr = new OutputManager(this);
@@ -129,7 +144,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->eolCombo->addItem(QStringLiteral("LF"), LF);
     ui->eolCombo->addItem(QStringLiteral("CR+LF"), CRLF);
     ui->eolCombo->addItem(QStringLiteral("None"), None);
-    ui->eolCombo->currentData(LF);
+    ui->eolCombo->setCurrentIndex(CR);
     _end_of_line = QByteArray("\n", 1);
 
     connect(ui->eolCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
@@ -156,6 +171,25 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->inputBox->loadHistory(settings::getCurrentProfile());
       //  ui->inputBox->setLayoutDirection(Qt::RightToLeft);
 
+
+    QTimer *deviceTimer = new QTimer(this);
+    connect(deviceTimer, SIGNAL(timeout()), this, SLOT(updateDevices()));
+    deviceTimer->start(1000);
+
+}
+
+void MainWindow::updateDevices()
+{
+    if (ui->deviceComboBox->isActiveWindow()) {
+    qDebug("Updating devices");
+
+    QString currentText = ui->deviceComboBox->currentText();
+
+    fillSettingsLists();
+
+    ui->deviceComboBox->setCurrentText(currentText);
+
+    }
 }
 
 void MainWindow::fillSettingsLists()
@@ -408,14 +442,33 @@ void MainWindow::addDataToView(const QString & textdata)
     else {
 
         newdata.clear();
-        QByteArray ba = textdata.toUtf8();
+        QByteArray ba;// = QByteArray::fromHex(textdata.toUtf8());
+
+
+        for (int i = 0; i < textdata.size(); i++) {
+
+            qDebug("Appending %d to ba: %c", i, textdata.at(i));
+            ba.append(textdata.at(i));
+        }
+
+
+        qDebug() << "BA:" << ba;
+        qDebug("ba.size: %d, text: %s", ba.size(), ba.toStdString());
+        qDebug("tx.size: %d, text: %s", textdata.size(), textdata.toUtf8());
+
         for (int i = 0; i < ba.size(); i++) {
 
             //ba.append(textdata.at(i));
 
             newdata.append(QString::number(ba.at(i), 16).toUpper());
+
+             qDebug() << "newdata: "<< (int)ba.at(i) << ", (%d):" << QString::number(ba.at(i), 16).toUpper();
+
             newdata.append(" ");
+
         }
+
+        qDebug() << "newdata:" << newdata;
     }
 
     // record end cursor position before adding text
@@ -426,15 +479,16 @@ void MainWindow::addDataToView(const QString & textdata)
     {
         // append text to the top output and stay at current position
         QTextCursor cursor(ui->mainOutput->document());
-        cursor.movePosition(QTextCursor::End);
         cursor.insertText(newdata);
+        cursor.movePosition(QTextCursor::End);
     }
     else
     {
         // append text to the top output and scroll down
-        ui->mainOutput->moveCursor(QTextCursor::End);
         ui->mainOutput->insertPlainText(newdata);
+        ui->mainOutput->moveCursor(QTextCursor::End);
     }
+    ui->mainOutput->moveCursor(QTextCursor::End);
 
     // append text to bottom output and scroll
     ui->bottomOutput->moveCursor(QTextCursor::End);
@@ -607,6 +661,11 @@ void MainWindow::on_deviceComboBox_highlighted(const QString &arg1)
     ui->hardwareLabel->setText(settings::getDescriptionOfProfile(arg1));
 }
 
+void MainWindow::on_deviceComboBox_activated(const QString &arg1)
+{
+
+}
+
 void MainWindow::on_profileComboBox_highlighted(const QString &arg1)
 {
     ui->baudRateBox->setCurrentText(QString::number(settings::getBaudRateOfProfile(arg1)));
@@ -718,8 +777,5 @@ void MainWindow::on_saveButton_released()
     }
 }
 
-void MainWindow::on_deviceComboBox_activated(const QString &arg1)
-{
-    fillSettingsLists();
-}
+
 

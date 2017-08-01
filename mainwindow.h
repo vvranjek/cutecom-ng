@@ -157,6 +157,7 @@ signals:
     void openSession(QString profile);
     void closeSession();
 private slots:
+    void updateDevices();
     void onCloseDialog();
     void on_connectButton_released();
     void on_profileComboBox_currentTextChanged(const QString &arg1);

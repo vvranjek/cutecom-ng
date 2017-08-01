@@ -253,6 +253,19 @@
         </property>
        </widget>
       </item>
+      <item row="1" column="3">
+       <spacer name="horizontalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
       <item row="0" column="0" colspan="11">
        <widget class="HistoryComboBox" name="inputBox">
         <property name="enabled">
@@ -301,6 +314,12 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>16777215</height>
+         </size>
         </property>
        </widget>
       </item>
@@ -408,23 +427,55 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="3">
-       <spacer name="horizontalSpacer_4">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+      <item row="2" column="0">
+       <widget class="QLabel" name="lineSeparatorLabel">
+        <property name="text">
+         <string>Line separator:</string>
         </property>
-        <property name="sizeHint" stdset="0">
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="lineSeparatorText">
+        <property name="maximumSize">
          <size>
-          <width>40</width>
-          <height>20</height>
+          <width>100</width>
+          <height>16777215</height>
          </size>
         </property>
-       </spacer>
+        <property name="text">
+         <string>not supported yet</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
    </layout>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>967</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="modeMenu">
+    <property name="title">
+     <string>Mode</string>
+    </property>
+    <addaction name="actionAdvanced"/>
+   </widget>
+   <addaction name="modeMenu"/>
+  </widget>
+  <action name="actionAdvanced">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Advanced</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -437,5 +488,38 @@
  <resources>
   <include location="serial-ninja.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionAdvanced</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>lineSeparatorLabel</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>60</x>
+     <y>761</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionAdvanced</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>lineSeparatorText</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>193</x>
+     <y>761</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

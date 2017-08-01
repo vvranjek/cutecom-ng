@@ -8,6 +8,17 @@ QT       += core gui serialport uitools
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+GIT_VERSION = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --always --tags)
+DEFINES += GIT_VERSION=\\"$$GIT_VERSION\\"
+
+GIT_VERSION = "v0.23"
+
+REVISION = $$system(git rev-parse HEAD)
+DEFINES += APP_REVISION=\\\"$$REVISION\\\"
+DEFINES += VER=\"$${GIT_VERSION}\"
+
+DEFINES += VER1=\\"V1.2.3\\"
+
 TARGET = serial-ninja
 TEMPLATE = app
 DESTDIR = bin
