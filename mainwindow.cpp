@@ -24,6 +24,7 @@
 #include <QSerialPortInfo>
 #include <QTimer>
 #include <QDebug>
+#include <QDateTime>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -443,34 +444,64 @@ void MainWindow::addDataToView(const QByteArray data)
     else {
 
         newdata.clear();
-        QByteArray ba = data;// = QByteArray::fromHex(textdata.toUtf8());
+        //QByteArray ba = data;// = QByteArray::fromHex(textdata.toUtf8());
 
-
-//        for (int i = 0; i < textdata.size(); i++) {
-
-//            qDebug("Appending %d to ba: %c", i, textdata.at(i));
-//            ba.append(textdata.at(i));
-//        }
-
-
-        qDebug() << "BA:" << ba;
-        qDebug("ba.size: %d, text: %s", ba.size(), ba.toStdString());
+       // qDebug() << "BA:" << ba;
+        //qDebug("ba.size: %d, text: %s", ba.size(), ba.toStdString());
         qDebug("tx.size: %d, text: %s", textdata.size(), textdata.toUtf8());
 
-        for (int i = 0; i < ba.size(); i++) {
+        for (int i = 0; i < data.size(); i++) {
 
             //ba.append(textdata.at(i));
 
-            newdata.append(QString::number((unsigned char)ba.at(i), 16).toUpper());
 
-             qDebug() << "newdata: "<< (unsigned char)ba.at(i) << ", (%d):" << QString::number(ba.at(i), 16).toUpper();
+            QString number = QString("%1").arg((unsigned char)data.at(i), 2, 16, QChar('0'));
 
+
+
+            /////////////////////// KESTREL STUFF /////////////////////
+
+            static unsigned char last;
+            static unsigned int count;
+
+
+            qDebug("Last: %2X, data: %2X", last, data.at(i));
+
+            if ((unsigned char)data.at(i) == 0xFF && last == 0xFE) {
+                newdata.append("\n\n");
+
+                QDateTime t = QDateTime::currentDateTime ();
+                QString s = t.toString("ss:zzz");
+
+                // Add counter
+                newdata.append(QString("%1").arg(count, 4, 10, QChar('0')) + "  ");
+                count++;
+
+                // Add time
+                newdata.append(t.toString("hh:mm:ss:zzz   "));
+            }
+
+            if (last == 0xFF) {
+                //Add dec value of msg
+                newdata.append("(");
+                newdata.append(QString::number((unsigned char)data.at(i)));
+                newdata.append(")");
+            }
+
+            last = data.at(i);
+            ///////////////////////////////////////////////////////////
+
+
+            //newdata.append(number.toUpper());
+             qDebug() << "newdata: "<< (unsigned char)data.at(i) << ", (%d):" << QString::number(data.at(i), 16).toUpper();
             newdata.append(" ");
 
         }
 
         qDebug() << "newdata:" << newdata;
     }
+
+
 
     // record end cursor position before adding text
     QTextCursor prev_end_cursor(ui->mainOutput->document());
