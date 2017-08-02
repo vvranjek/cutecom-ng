@@ -173,22 +173,29 @@ MainWindow::MainWindow(QWidget *parent) :
       //  ui->inputBox->setLayoutDirection(Qt::RightToLeft);
 
 
-    QTimer *deviceTimer = new QTimer(this);
-    connect(deviceTimer, SIGNAL(timeout()), this, SLOT(updateDevices()));
-    deviceTimer->start(1000);
+
+    ui->refreshButton->setIcon(QIcon("refresh"));
+   //    ui->refreshButton->setIconSize(QSize(65,65));
+
+
+    //QTimer *deviceTimer = new QTimer(this);
+    //connect(deviceTimer, SIGNAL(timeout()), this, SLOT(updateDevices()));
+    //deviceTimer->start(1000);
 
 }
 
 void MainWindow::updateDevices()
 {
     if (ui->deviceComboBox->isActiveWindow()) {
-    qDebug("Updating devices");
+        qDebug("Updating devices");
 
-    QString currentText = ui->deviceComboBox->currentText();
+        QString currentText = ui->deviceComboBox->currentText();
 
-    fillSettingsLists();
+        fillSettingsLists();
 
-    ui->deviceComboBox->setCurrentText(currentText);
+        ui->deviceComboBox->setCurrentText(currentText);
+
+        refreshSettings(settings::getCurrentProfile());
 
     }
 }
@@ -196,6 +203,10 @@ void MainWindow::updateDevices()
 void MainWindow::fillSettingsLists()
 {
     ui->deviceComboBox->clear();
+    ui->baudRateBox->clear();
+    ui->dataBitsComboBox->clear();
+    ui->flowComboBox->clear();
+    ui->parityComboBox->clear();
     // fill devices combo box
     QList<QSerialPortInfo> ports(QSerialPortInfo::availablePorts());
     for (int idx = 0; idx < ports.length(); ++idx)
@@ -287,9 +298,16 @@ void MainWindow::refreshSettings(QString profile)
         ui->profileComboBox->setCurrentText(profile);
         ui->hardwareLabel->setText(cfg[QStringLiteral("description")]);
 	
-	// Find and set existing port index
-        QString textToFind = cfg[QStringLiteral("device")];
-        int index = ui->deviceComboBox->findText(textToFind);
+        // Find and set existing port index
+        QString device = cfg[QStringLiteral("device")];
+
+        // Set index only if available in settings, otherwise leave is it was
+        int index = ui->deviceComboBox->currentIndex();
+        if (ui->deviceComboBox->findText(device) >= 0) {
+            index = ui->deviceComboBox->findText(device);
+        }
+
+        qDebug("Setting index: %d", index);
         ui->deviceComboBox->setCurrentIndex(index);
 
         ui->baudRateBox->setCurrentText(cfg[QStringLiteral("baud_rate")]);
@@ -613,7 +631,9 @@ void MainWindow::handleEOLCharChanged(int index)
 void MainWindow::on_connectButton_released()
 {
     settings::setCurrentProfile(ui->profileComboBox->currentText());
-    tempFile.remove();
+    if (ui->connectButton->isChecked()) {
+        tempFile.remove();
+    }
 
     if (ui->connectButton->isChecked()) {
         QHash<QString, QString> current_settings;
@@ -701,8 +721,7 @@ void MainWindow::on_clearButton_clicked()
 void MainWindow::on_saveButton_released()
 {
     while (true) {
-        QString fileName = QFileDialog::getOpenFileName(
-                    this, QStringLiteral("Save session to.."));
+        QString fileName = QFileDialog::getOpenFileName(this, QStringLiteral("Save session to.."));
 
         if (fileName.isNull()) {
             qDebug() << "Filename error";
@@ -762,3 +781,8 @@ void MainWindow::on_saveButton_released()
 
 
 
+
+void MainWindow::on_refreshButton_released()
+{
+    updateDevices();
+}
