@@ -171,13 +171,13 @@ QString settings::getDeviceDescription(QString location)
                 description.append(port_info.manufacturer());
             }
 
-            // Add serial number
-            if (!port_info.serialNumber().isEmpty()) {
-                if (!description.isEmpty()) {
-                    description.push_back(QStringLiteral(" / "));
-                }
-                description.append(port_info.serialNumber());
-            }
+//            // Add serial number
+//            if (!port_info.serialNumber().isEmpty()) {
+//                if (!description.isEmpty()) {
+//                    description.push_back(QStringLiteral(" / "));
+//                }
+//                description.append(port_info.serialNumber());
+//            }
 
             return description;
         }

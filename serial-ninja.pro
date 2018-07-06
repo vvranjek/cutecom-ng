@@ -4,6 +4,8 @@
 #
 #-------------------------------------------------
 
+# Rquires Qt 5.2.1
+
 QT       += core gui serialport uitools
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -41,7 +43,8 @@ SOURCES += main.cpp\
     filetransfer.cpp \
     libs/crc16.cpp \
     libs/xmodem.cpp \
-    settings.cpp
+    settings.cpp \
+    completerinput.cpp
 
 HEADERS  += mainwindow.h \
     connectdialog.h \
@@ -54,7 +57,8 @@ HEADERS  += mainwindow.h \
     filetransfer.h \
     libs/crc16.h \
     libs/xmodem.h \
-    settings.h
+    settings.h \
+    completerinput.h
 
 FORMS    += mainwindow.ui \
     connectdialog.ui \

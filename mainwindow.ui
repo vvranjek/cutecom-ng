@@ -18,6 +18,41 @@
   </property>
   <widget class="QWidget" name="mainWidget">
    <layout class="QGridLayout" name="gridLayout_3">
+    <item row="2" column="0">
+     <widget class="QPlainTextEdit" name="bottomOutput">
+      <property name="font">
+       <font>
+        <family>Courier</family>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="verticalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QPlainTextEdit" name="mainOutput">
+      <property name="font">
+       <font>
+        <family>Courier</family>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
     <item row="0" column="0">
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0" colspan="2">
@@ -129,7 +164,7 @@
          </size>
         </property>
         <property name="text">
-         <string> </string>
+         <string/>
         </property>
        </widget>
       </item>
@@ -213,42 +248,7 @@
       </item>
      </layout>
     </item>
-    <item row="1" column="0">
-     <widget class="QPlainTextEdit" name="mainOutput">
-      <property name="font">
-       <font>
-        <family>Courier</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QPlainTextEdit" name="bottomOutput">
-      <property name="font">
-       <font>
-        <family>Courier</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="focusPolicy">
-       <enum>Qt::NoFocus</enum>
-      </property>
-      <property name="verticalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
-      </property>
-      <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
+    <item row="4" column="0">
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="1" column="10">
        <widget class="QToolButton" name="splitOutputBtn">
@@ -462,6 +462,9 @@
       </item>
      </layout>
     </item>
+    <item row="3" column="0">
+     <widget class="CompleterInput" name="inputComplete"/>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -470,7 +473,7 @@
      <x>0</x>
      <y>0</y>
      <width>967</width>
-     <height>25</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="modeMenu">
@@ -496,6 +499,11 @@
    <class>HistoryComboBox</class>
    <extends>QComboBox</extends>
    <header>historycombobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CompleterInput</class>
+   <extends>QLineEdit</extends>
+   <header>completerinput.h</header>
   </customwidget>
  </customwidgets>
  <resources>

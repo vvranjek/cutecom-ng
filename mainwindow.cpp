@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <iterator>
 
-#include <QUiLoader>
+#include <QtUiTools/QUiLoader>
 #include <QLineEdit>
 #include <QPropertyAnimation>
 #include <QShortcut>
@@ -33,6 +33,7 @@
 #include "outputmanager.h"
 #include "searchhighlighter.h"
 #include "settings.h"
+#include "completerinput.h"
 
 /// maximum count of document blocks for the bootom output
 const int MAX_OUTPUT_LINES = 100;
@@ -79,7 +80,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // get data formatted for display and show it in output view
     connect(ui->inputBox, &HistoryComboBox::lineEntered, this, &MainWindow::handleNewInput);
-   // connect(ui->inputBox, &HistoryComboBox::lineEntered, this, &MainWindow::handleNewInput);
+
+    connect(ui->inputComplete, SIGNAL(CompleterInput::returnPressed), this, SLOT(MainWindow::handleNewInput));
 
     // handle start/stop session
     connect(session_mgr, &SessionManager::sessionOpened, this, &MainWindow::handleSessionOpened);
@@ -170,7 +172,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->profileComboBox->setCurrentText(_currentProfile);
 
     ui->inputBox->loadHistory(settings::getCurrentProfile());
-      //  ui->inputBox->setLayoutDirection(Qt::RightToLeft);
+    ui->inputComplete->loadFromFile(settings::getCurrentProfile());
+    ui->inputComplete->init();
 
 
 

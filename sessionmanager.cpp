@@ -151,7 +151,8 @@ void SessionManager::openSession(const QString profile)
     else
     {
         // here, stopped means 'no connection is in progress'
-        emit sessionClosed();
+        emit sessionOpened();
+        //emit sessionClosed();
     }
 }
 
