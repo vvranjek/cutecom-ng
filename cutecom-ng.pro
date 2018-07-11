@@ -4,6 +4,14 @@
 #
 #-------------------------------------------------
 
+#
+# Tested on Qt 5.9.5
+#
+# On Linux you sould install the following
+# sudo apt-get install libqt5serialport5-dev
+# sudo apt-get install qttools5-dev
+#
+
 QT       += core gui serialport uitools
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
