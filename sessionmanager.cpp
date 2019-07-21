@@ -64,7 +64,7 @@ void SessionManager::handleError(QSerialPort::SerialPortError serialPortError)
         default:
             if (in_progress)
             {
-                QMessageBox::critical(NULL, tr("Error"), serial->errorString());
+                //QMessageBox::critical(NULL, tr("Error"), serial->errorString());
 
                 // on some error (ex: hot unplugging) the 'QSerialPort::error' property successively
                 // takes multiple values.

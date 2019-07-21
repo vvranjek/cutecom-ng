@@ -9,6 +9,7 @@
 
 class CompleterInput  : public QLineEdit/*, public QObject*/
 {
+    Q_OBJECT
 
 private:
     QCompleter *completer;
@@ -23,10 +24,11 @@ public:
     void loadFromFile(const QString filename);
 
 protected:
+    bool eventFilter(QObject *obj, QEvent *event);
     virtual void keyPressEvent(QKeyEvent *e);
 
 signals:
-    //void lineEntered(const QString);
+    void lineEntered(const QString);
 };
 
 #endif // COMPLETERINPUT_H

@@ -5,6 +5,14 @@
 #include <QDebug>
 #include <QFile>
 
+
+CompleterInput::CompleterInput(QWidget *parent) :
+    QLineEdit(parent)
+    //edit(new QLineEdit(this))
+{
+    this->installEventFilter(this);
+}
+
 void CompleterInput::init()
 {
     completer = new QCompleter(this);
@@ -12,28 +20,37 @@ void CompleterInput::init()
     completer->setCompletionMode(QCompleter::InlineCompletion);
     completer->setCaseSensitivity(Qt::CaseSensitive);
     completer->setModel(modelFromFile(completerFile));
-    completer->setWrapAround(false);
+    completer->setWrapAround(true);
+    completer->setCompletionRole(Qt::EditRole);
     this->setCompleter(completer);
+    //this->setCompleter(NULL);
 }
 
-CompleterInput::CompleterInput(QWidget *parent) :
-    QLineEdit(parent)
-{
-
-
-}
 
 void CompleterInput::loadFromFile(const QString filename)
 {
     completerFile = filename;
-    //completer->setModel(modelFromFile(filename));
+}
 
+bool CompleterInput::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+
+        /* Prevent tab key from loosing focus */
+        if (keyEvent->key() == Qt::Key_Tab)
+        {
+            return true;
+        }
+    }
 }
 
 void CompleterInput::keyPressEvent(QKeyEvent *e)
 {
     switch (e->key())
     {
+
+    this->deselect();
     case Qt::Key_Up:
         //setCurrentIndex(0);
         //setItemText(0, history->previous());
@@ -53,7 +70,7 @@ void CompleterInput::keyPressEvent(QKeyEvent *e)
     case Qt::Key_Return:
     case Qt::Key_Enter:
     {
-        QString line = this->text();
+        QString line = this->text().simplified();
         if (line.length() > 0)
         {
             // don't treat empty input
@@ -62,6 +79,9 @@ void CompleterInput::keyPressEvent(QKeyEvent *e)
             QModelIndex index = completer->model()->index(0,0);
             completer->model()->setData(index, line);
         }
+
+        emit lineEntered(line);
+        this->setText("");
 
         break;
     }
@@ -76,10 +96,16 @@ void CompleterInput::keyPressEvent(QKeyEvent *e)
         QLineEdit::keyPressEvent(e);
         return;
     }
+    case Qt::Key_Tab:
+    {
+        qDebug() << "Complete";
+        completer->complete();
+    }
 
     default:
         qDebug() << "Complete";
         completer->complete();
+
         QLineEdit::keyPressEvent(e);
         break;
     }

@@ -81,7 +81,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // get data formatted for display and show it in output view
     connect(ui->inputBox, &HistoryComboBox::lineEntered, this, &MainWindow::handleNewInput);
 
-    connect(ui->inputComplete, SIGNAL(CompleterInput::returnPressed), this, SLOT(MainWindow::handleNewInput));
+    //connect(ui->inputComplete, SIGNAL(CompleterInput::returnPressed), this, SLOT(MainWindow::handleNewInput));
+    connect(ui->inputComplete, SIGNAL(CompleterInput::lineEntered()), this, SLOT(MainWindow::handleNewInput));
 
     // handle start/stop session
     connect(session_mgr, &SessionManager::sessionOpened, this, &MainWindow::handleSessionOpened);
@@ -174,8 +175,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->inputBox->loadHistory(settings::getCurrentProfile());
     ui->inputComplete->loadFromFile(settings::getCurrentProfile());
     ui->inputComplete->init();
-
-
+    ui->inputComplete->installEventFilter(this);
 
     ui->refreshButton->setIcon(QIcon("refresh"));
    //    ui->refreshButton->setIconSize(QSize(65,65));
@@ -185,6 +185,8 @@ MainWindow::MainWindow(QWidget *parent) :
     //connect(deviceTimer, SIGNAL(timeout()), this, SLOT(updateDevices()));
     //deviceTimer->start(1000);
 
+    ui->connectButton->toggle();
+    ui->inputComplete->setFocus();
 }
 
 void MainWindow::updateDevices()
